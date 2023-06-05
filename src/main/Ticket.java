@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 
 public class Ticket {
 	private static final Logger logger =  Logger.getLogger(Ticket.class.getName());
-	private static final String TICKET = "Tickets";
+	private static final String TICKET_NAME = "Tickets";
 	private static final String HEADER_ROW = "TICKET ID ; IV ; OV ; FV ; AV \n";
 	private static final String ERROR = "Errore nella crezione del dataset";
 
