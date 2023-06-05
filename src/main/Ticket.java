@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 
 public class Ticket {
 	private static final Logger logger =  Logger.getLogger(Ticket.class.getName());
-	private static final String ticket = "Tickets";
+	private static final String TICKET = "Tickets";
 	private static final String HEADER_ROW = "TICKET ID ; IV ; OV ; FV ; AV \n";
 	private static final String ERROR = "Errore nella crezione del dataset";
 
@@ -178,7 +178,7 @@ public class Ticket {
 	  logger.info("Creando file BOOKKEEPERTickets.csv");
 
   	  try (
-  	   FileWriter fileWriter = new FileWriter(PROJECT + "Tickets"+".csv")) {
+  	   FileWriter fileWriter = new FileWriter(PROJECT + TICKET+".csv")) {
   	   
   	   fileWriter.append(HEADER_ROW);
   	   for (Ticket ticket : ticketList) {
@@ -203,7 +203,7 @@ public class Ticket {
 		  logger.info("Creando file STORMTickets.csv");
 
 	  	  try (
-	  	   FileWriter fileWriter = new FileWriter("STORM" + "Tickets"+".csv")) {
+	  	   FileWriter fileWriter = new FileWriter("STORM" + TICKET+".csv")) {
 	  	   
 	  	   fileWriter.append(HEADER_ROW);
 	  	   for (Ticket ticket : ticketList) {
@@ -229,7 +229,7 @@ public class Ticket {
 		  logger.info("Creando file TAJOTickets.csv");
 
 	  	  try (
-	  	   FileWriter fileWriter = new FileWriter("TAJO" + "Tickets"+".csv")) {
+	  	   FileWriter fileWriter = new FileWriter("TAJO" + TICKET+".csv")) {
 	  	   
 	  	   fileWriter.append(HEADER_ROW);
 	  	   for (Ticket ticket : ticketList) {
@@ -254,7 +254,7 @@ public class Ticket {
 		  logger.info("Creando file AvroTickets.csv");
 
 	  	  try (
-	  	   FileWriter fileWriter = new FileWriter("AVRO" + ticket +".csv")) {
+	  	   FileWriter fileWriter = new FileWriter("AVRO" + TICKET +".csv")) {
 	  	   
 	  	   fileWriter.append(HEADER_ROW);
 	  	   for (Ticket ticket : ticketList) {
@@ -280,7 +280,7 @@ public class Ticket {
 		  logger.info("Creando file AccumuloTickets.csv");
 
 	  	  try (
-	  	   FileWriter fileWriter = new FileWriter("ACCUMULO" + ticket+".csv")) {
+	  	   FileWriter fileWriter = new FileWriter("ACCUMULO" + TICKET+".csv")) {
 	  	   
 	  	   fileWriter.append(HEADER_ROW);
 	  	   for (Ticket ticket : ticketList) {
@@ -306,7 +306,7 @@ public class Ticket {
 	    logger.info("Creando file OPENJPATickets.csv");
 
 	  	  try (
-	  	   FileWriter fileWriter = new FileWriter(PROJECT1 + ticket +".csv")) {
+	  	   FileWriter fileWriter = new FileWriter(PROJECT1 + TICKET +".csv")) {
 	  	   
 	  	   fileWriter.append(HEADER_ROW);
 	  	   for (Ticket ticket : ticketList) {
