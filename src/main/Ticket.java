@@ -178,7 +178,7 @@ public class Ticket {
 	  logger.info("Creando file BOOKKEEPERTickets.csv");
 
   	  try (
-  	   FileWriter fileWriter = new FileWriter(PROJECT + TICKET+".csv")) {
+  	   FileWriter fileWriter = new FileWriter(PROJECT + TICKET_NAME+".csv")) {
   	   
   	   fileWriter.append(HEADER_ROW);
   	   for (Ticket ticket : ticketList) {
@@ -203,7 +203,7 @@ public class Ticket {
 		  logger.info("Creando file STORMTickets.csv");
 
 	  	  try (
-	  	   FileWriter fileWriter = new FileWriter("STORM" + TICKET+".csv")) {
+	  	   FileWriter fileWriter = new FileWriter("STORM" + TICKET_NAME+".csv")) {
 	  	   
 	  	   fileWriter.append(HEADER_ROW);
 	  	   for (Ticket ticket : ticketList) {
@@ -229,7 +229,7 @@ public class Ticket {
 		  logger.info("Creando file TAJOTickets.csv");
 
 	  	  try (
-	  	   FileWriter fileWriter = new FileWriter("TAJO" + TICKET+".csv")) {
+	  	   FileWriter fileWriter = new FileWriter("TAJO" + TICKET_NAME+".csv")) {
 	  	   
 	  	   fileWriter.append(HEADER_ROW);
 	  	   for (Ticket ticket : ticketList) {
@@ -254,7 +254,7 @@ public class Ticket {
 		  logger.info("Creando file AvroTickets.csv");
 
 	  	  try (
-	  	   FileWriter fileWriter = new FileWriter("AVRO" + TICKET +".csv")) {
+	  	   FileWriter fileWriter = new FileWriter("AVRO" + TICKET_NAME +".csv")) {
 	  	   
 	  	   fileWriter.append(HEADER_ROW);
 	  	   for (Ticket ticket : ticketList) {
@@ -280,7 +280,7 @@ public class Ticket {
 		  logger.info("Creando file AccumuloTickets.csv");
 
 	  	  try (
-	  	   FileWriter fileWriter = new FileWriter("ACCUMULO" + TICKET+".csv")) {
+	  	   FileWriter fileWriter = new FileWriter("ACCUMULO" + TICKET_NAME+".csv")) {
 	  	   
 	  	   fileWriter.append(HEADER_ROW);
 	  	   for (Ticket ticket : ticketList) {
@@ -306,7 +306,7 @@ public class Ticket {
 	    logger.info("Creando file OPENJPATickets.csv");
 
 	  	  try (
-	  	   FileWriter fileWriter = new FileWriter(PROJECT1 + TICKET +".csv")) {
+	  	   FileWriter fileWriter = new FileWriter(PROJECT1 + TICKET_NAME +".csv")) {
 	  	   
 	  	   fileWriter.append(HEADER_ROW);
 	  	   for (Ticket ticket : ticketList) {
