@@ -1463,10 +1463,10 @@ public class RetrieveMetrics {
 
         
         private static List<String> projects = Arrays.asList(
-                "AVRO",
-                "STORM",
-                "ACCUMULO",
-                "TAJO"
+                AVRO,
+                STORM,
+                ACCUMULO,
+                TAJO
                
         );
         
@@ -1510,7 +1510,7 @@ public class RetrieveMetrics {
                     return ticketListAccumulo;
                 
                 default:
-                    return null;
+                    return Collections.emptyList();
             }
         }
         
