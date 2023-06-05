@@ -65,6 +65,7 @@ public class RetrieveMetrics {
 	
 	static String name = "giuliamenichini";
 	static String percorso = "/Users/" + name + "/";
+	static String percorsoProportion = "/Users/" + name + "/eclipse-workspace/ISW2/";
 	public static final String PATH = System.getProperty("user.dir") + File.separator;
 	public static final String DATASET_FILENAME = "Dataset.csv";
 	public static final String URI_OPENJPA = PATH + OPENJPA + DATASET_FILENAME;
@@ -500,7 +501,6 @@ public class RetrieveMetrics {
 
     //set AV
     private static void handleOVMoreThanFV(Ticket ticket) {
-    	//if(ticket.getInjectedVersion() != 0) {
         int targetInjectedVersion = ticket.getInjectedVersion();
         OptionalInt validIV = IntStream.rangeClosed(targetInjectedVersion, ticket.getFixedVersion() - 1)
                                        .filter(v -> isIVValid(ticket, v))
@@ -513,7 +513,7 @@ public class RetrieveMetrics {
         } else {
             ticket.setAffectedVersion(Collections.singletonList(0));
             ticket.setInjectedVersion(0);
-        }//}
+        }
     }
 
     //se FV <= OV 
@@ -608,9 +608,8 @@ public class RetrieveMetrics {
         checkTicketTajo(); 
         FileRepositoryBuilder repositoryBuilderTajo = new FileRepositoryBuilder();
         repository = repositoryBuilderTajo.setGitDir(new File(percorso + "tajo" + endPath)).readEnvironment().findGitDir().setMustExist(true).build();
-        logger.log(Level.INFO, "Numero ticket = {0}.", ticketListTajo.size());
         Collections.reverse(ticketListTajo); 
-        Ticket.ticketDatasetAvro(ticketListTajo);
+        Ticket.ticketDatasetTajo(ticketListTajo);
         logger.log(Level.INFO, "P TAJO: ");
 
         obtainingPOtherProject(ticketListTajo);
@@ -620,9 +619,8 @@ public class RetrieveMetrics {
         checkTicketStorm(); 
         FileRepositoryBuilder repositoryBuilderStorm = new FileRepositoryBuilder();
         repository = repositoryBuilderStorm.setGitDir(new File(percorso + "storm" + endPath)).readEnvironment().findGitDir().setMustExist(true).build();
-        logger.log(Level.INFO, "Numero ticket = {0}.", ticketListStorm.size());
         Collections.reverse(ticketListStorm); 
-        Ticket.ticketDatasetAvro(ticketListStorm);
+        Ticket.ticketDatasetStorm(ticketListStorm);
         logger.log(Level.INFO, "P STORM: ");
 
         obtainingPOtherProject(ticketListStorm);
@@ -634,7 +632,6 @@ public class RetrieveMetrics {
         checkTicketAvro(); 
         FileRepositoryBuilder repositoryBuilderAvro = new FileRepositoryBuilder();
         repository = repositoryBuilderAvro.setGitDir(new File(percorso + "avro" + endPath)).readEnvironment().findGitDir().setMustExist(true).build();
-        logger.log(Level.INFO, "Numero ticket = {0}.", ticketListAvro.size());
         Collections.reverse(ticketListAvro); 
         Ticket.ticketDatasetAvro(ticketListAvro);
         logger.log(Level.INFO, "P AVRO: ");
@@ -650,16 +647,15 @@ public class RetrieveMetrics {
         removeObsoleteReleasesAndTickets(releasesListAccumulo, ticketListAccumulo);
         checkTicketZookkeeper(); 
         FileRepositoryBuilder repositoryBuilderZookkeeper = new FileRepositoryBuilder();
-        repository = repositoryBuilderZookkeeper.setGitDir(new File(percorso + "Accumulo" + endPath)).readEnvironment().findGitDir().setMustExist(true).build();
-        logger.log(Level.INFO, "Numero ticket = {0}.", ticketListAccumulo.size());
+        repository = repositoryBuilderZookkeeper.setGitDir(new File(percorso + ACCUMULO.toLowerCase() + endPath)).readEnvironment().findGitDir().setMustExist(true).build();
         Collections.reverse(ticketListAccumulo); 
         Ticket.ticketDatasetAccumulo(ticketListAccumulo);
         logger.log(Level.INFO, "P ACCUMULO: ");
 
         obtainingPOtherProject(ticketListAccumulo);
-        Median(ticketListAvro, ticketListAccumulo, ticketListStorm, ticketListTajo);
+        medianP(ticketListAvro, ticketListAccumulo, ticketListStorm, ticketListTajo);
         //salvataggio file P
-        String filename = "/Users/giuliamenichini/eclipse-workspace/ISW2/proportion.csv";
+        String filename = percorsoProportion + "proportion.csv";
         writeProjectsToFile(filename);
         //Bookkeeper
         linkFunction();
@@ -668,7 +664,6 @@ public class RetrieveMetrics {
         checkTicketBookkeeper(); 
         FileRepositoryBuilder repositoryBuilderBookkeeper = new FileRepositoryBuilder();
         repository = repositoryBuilderBookkeeper.setGitDir(new File(percorso + BOOKKEEPER.toLowerCase() + endPath)).readEnvironment().findGitDir().setMustExist(true).build();
-        logger.log(Level.INFO, "Numero ticket = {0}.", ticketListBookkeeper.size());
         Collections.reverse(ticketListBookkeeper); 
 
 
@@ -1273,14 +1268,7 @@ public class RetrieveMetrics {
                     .setMustExist(true).build();
         
     }
-        //data uguale o superiore a date
-       /* public static Integer afterBeforeDate(LocalDateTime date, Stream<Release> releaseStream) {
-            Optional<Release> matchingRelease = releaseStream
-                .filter(release -> date.isBefore(release.getDate()) || date.isEqual(release.getDate()))
-                .findFirst();
-            return matchingRelease.isPresent() ? matchingRelease.get().getIndex() : 0;
-        }*/
-        
+       
         public static Integer afterBeforeDate(LocalDateTime date, List<Release> releases) {
             Release matchingRelease = releases.stream()
                     .filter(release -> date.isBefore(release.getDate()) || date.isEqual(release.getDate()))
@@ -1327,9 +1315,7 @@ public class RetrieveMetrics {
 
         //rimuovi quelli maggiori di 1%
         public static void movingWindows(List<Ticket> movingWindow, Ticket ticket) {
-            /*movingWindow.add(ticket);
             
-            movingWindow.removeIf(t -> movingWindow.size() > movingWindowsCount);*/
             
             if (movingWindow.size() < movingWindowsCount ) {
             	movingWindow.add(ticket);
@@ -1347,8 +1333,8 @@ public class RetrieveMetrics {
             float pNew = p/movingWindowsCount;
             int predictedIv = 0;
             if(newProportionTicket.size() < movingWindowsCount) {
-            	predictedIv = calculatePredictedIv(ticket, Median(ticketListAvro, ticketListAccumulo, ticketListStorm, ticketListTajo));;
-                System.out.println("Pnew1 "  + ticket.getTicketID() + ":" + Float.toString(Median(ticketListAvro, ticketListAccumulo, ticketListStorm, ticketListTajo)));
+            	predictedIv = calculatePredictedIv(ticket, medianP(ticketListAvro, ticketListAccumulo, ticketListStorm, ticketListTajo));;
+                System.out.println("Pnew1 "  + ticket.getTicketID() + ":" + Float.toString(medianP(ticketListAvro, ticketListAccumulo, ticketListStorm, ticketListTajo)));
 
             }else if(newProportionTicket.size() >= movingWindowsCount) {
                 predictedIv = calculatePredictedIv(ticket, pNew);
@@ -1375,13 +1361,7 @@ public class RetrieveMetrics {
 
 
 
-        //media dei p dell'1%
-        private static int calculatepNew(float p, Ticket ticket) {
-        	
-            //System.out.println("pNew "  + ticket.getTicketID() + ":" + Float.toString(p));
-
-            return (int) Math.floor(p / movingWindowsCount);
-        }
+        
         //calcolo IV 
         private static int calculatePredictedIv(Ticket ticket, float pNew) {
             int fv = ticket.getFixedVersion();
@@ -1454,7 +1434,7 @@ public class RetrieveMetrics {
             }
         }
         
-        private static float Median(List<Ticket> tickets, List<Ticket> tickets2, List<Ticket> tickets3, List<Ticket> tickets4) {
+        private static float medianP(List<Ticket> tickets, List<Ticket> tickets2, List<Ticket> tickets3, List<Ticket> tickets4) {
             float[] values = {
                 obtainingPOtherProject(tickets),
                 obtainingPOtherProject(tickets3),
@@ -1482,19 +1462,20 @@ public class RetrieveMetrics {
         }
 
         
-        private static List<String> Projects = Arrays.asList(
+        private static List<String> projects = Arrays.asList(
                 "AVRO",
                 "STORM",
-                "Accumulo",
+                "ACCUMULO",
                 "TAJO"
                
         );
         
         public static void writeProjectsToFile(String fileName) {
+        	
             try (FileWriter writer = new FileWriter(fileName)) {
                 writer.write("Project,Proportion" + System.lineSeparator());
 
-                for (String project : Projects) {
+                for (String project : projects) {
                     List<Ticket> ticketList = getTicketListForProject(project);
                     float proportionValue = obtainingPOtherProject(ticketList);
                     String line = project + "," + proportionValue;
@@ -1502,11 +1483,11 @@ public class RetrieveMetrics {
                 }
                 
                 // Calcolo e scrittura della mediana
-                List<Ticket> tickets = getTicketListForProject(Projects.get(0));
-                List<Ticket> tickets2 = getTicketListForProject(Projects.get(1));
-                List<Ticket> tickets3 = getTicketListForProject(Projects.get(2));
-                List<Ticket> tickets4 = getTicketListForProject(Projects.get(3));
-                float medianValue = Median(tickets, tickets2, tickets3, tickets4);
+                List<Ticket> tickets = getTicketListForProject(projects.get(0));
+                List<Ticket> tickets2 = getTicketListForProject(projects.get(1));
+                List<Ticket> tickets3 = getTicketListForProject(projects.get(2));
+                List<Ticket> tickets4 = getTicketListForProject(projects.get(3));
+                float medianValue = medianP(tickets, tickets2, tickets3, tickets4);
                 writer.write("Median P ," + medianValue + System.lineSeparator());
 
                 System.out.println("Scrittura completata nel file: " + fileName);
@@ -1519,13 +1500,13 @@ public class RetrieveMetrics {
         private static List<Ticket> getTicketListForProject(String project) {
             
             switch (project) {
-                case "AVRO":
+                case AVRO:
                     return ticketListAvro;
-                case "TAJO":
+                case TAJO:
                     return ticketListTajo;
-                case "STORM":
+                case STORM:
                     return ticketListStorm;
-                case "Accumulo":
+                case ACCUMULO:
                     return ticketListAccumulo;
                 
                 default:
