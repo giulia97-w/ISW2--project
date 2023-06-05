@@ -53,7 +53,8 @@ import java.util.stream.IntStream;
 
 
 public class RetrieveMetrics {
-	
+	private static final String ERROR = "Errore nella crezione del dataset";
+
 	public static final String BOOKKEEPER = "BOOKKEEPER";
 	public static final String OPENJPA = "OPENJPA";
 	public static final String TAJO = "TAJO";
@@ -1333,7 +1334,7 @@ public class RetrieveMetrics {
             float pNew = p/movingWindowsCount;
             int predictedIv = 0;
             if(newProportionTicket.size() < movingWindowsCount) {
-            	predictedIv = calculatePredictedIv(ticket, medianP(ticketListAvro, ticketListAccumulo, ticketListStorm, ticketListTajo));;
+            	predictedIv = calculatePredictedIv(ticket, medianP(ticketListAvro, ticketListAccumulo, ticketListStorm, ticketListTajo));
 
             }else if(newProportionTicket.size() >= movingWindowsCount) {
                 predictedIv = calculatePredictedIv(ticket, pNew);
@@ -1365,7 +1366,6 @@ public class RetrieveMetrics {
             int ov = ticket.getOpenVersion();
             float predictedIV = (fv - (fv - ov) * pNew);
             
-            //System.out.println("Predicted IV "  + ticket.getTicketID() + ":" + Float.toString(pNew));
             
             return  (int) predictedIV;
         }
@@ -1451,7 +1451,6 @@ public class RetrieveMetrics {
                 median = values[middle];
             }
 
-            System.out.println("Mediana: " + median);
 
             return median;
         }
@@ -1486,6 +1485,8 @@ public class RetrieveMetrics {
                 writer.write("Median P ," + medianValue + System.lineSeparator());
 
             } catch (IOException e) {
+		logger.info(ERROR);
+
             }
         }
 
