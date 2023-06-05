@@ -1334,11 +1334,9 @@ public class RetrieveMetrics {
             int predictedIv = 0;
             if(newProportionTicket.size() < movingWindowsCount) {
             	predictedIv = calculatePredictedIv(ticket, medianP(ticketListAvro, ticketListAccumulo, ticketListStorm, ticketListTajo));;
-                System.out.println("Pnew1 "  + ticket.getTicketID() + ":" + Float.toString(medianP(ticketListAvro, ticketListAccumulo, ticketListStorm, ticketListTajo)));
 
             }else if(newProportionTicket.size() >= movingWindowsCount) {
                 predictedIv = calculatePredictedIv(ticket, pNew);
-                System.out.println("Pnew "  + ticket.getTicketID() + ":" + Float.toString(p/movingWindowsCount));
 
 
 
@@ -1346,7 +1344,6 @@ public class RetrieveMetrics {
             if(predictedIv < 0) {
             	predictedIv = (int) 1.0;
             }
-            //System.out.println("Predicted IV "  + ticket.getTicketID() + ":" + Float.toString(predictedIv));
 
             ticket.setInjectedVersion(Math.min(predictedIv, ticket.getOpenVersion()));
         }
@@ -1388,7 +1385,6 @@ public class RetrieveMetrics {
             if(fv!=ov ) { 
 	
             p = (fv - iv) / (fv - ov);
-            //System.out.println("P "  + ticket.getTicketID() + ":" + Float.toString(p));
             }
 
             return p;
@@ -1427,7 +1423,6 @@ public class RetrieveMetrics {
             
             if (count > 0) {
                 
-                System.out.println("P  :"   + sumP/count);
 				return sumP / count;
             } else {
                 return 0;
@@ -1490,9 +1485,7 @@ public class RetrieveMetrics {
                 float medianValue = medianP(tickets, tickets2, tickets3, tickets4);
                 writer.write("Median P ," + medianValue + System.lineSeparator());
 
-                System.out.println("Scrittura completata nel file: " + fileName);
             } catch (IOException e) {
-                System.err.println("Errore durante la scrittura del file: " + e.getMessage());
             }
         }
 
