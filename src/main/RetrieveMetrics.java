@@ -53,9 +53,9 @@ import java.util.stream.IntStream;
 
 
 public class RetrieveMetrics {
-	private static final String ERROR = "Errore nella crezione del dataset";
-
+	
 	public static final String BOOKKEEPER = "BOOKKEEPER";
+	public static final String SYNCOPE = "SYNCOPE";
 	public static final String OPENJPA = "OPENJPA";
 	public static final String TAJO = "TAJO";
 	public static final String ACCUMULO = "ACCUMULO";
@@ -133,7 +133,7 @@ public class RetrieveMetrics {
         setResolutionDateAndFVZookkeeper();
         setResolutionDateAndFVStorm();
         setResolutionDateAndFVTajo();
-
+        setResolutionDateAndFVSyncope();
         removeUnlinkedTickets();
     }
     //restituisce data del commit
@@ -198,6 +198,12 @@ public class RetrieveMetrics {
             ticket.setCommitDateList(commitDateList);
         }
     }
+    private static void updateTicketCommitDatesSyncope() {
+        for (Ticket ticket : ticketListSyncope) {
+            List<LocalDateTime> commitDateList = findCommitDatesForTicket(ticket, commitListSyncope);
+            ticket.setCommitDateList(commitDateList);
+        }
+    }
     
     private static void linkage() {
         updateTicketCommitDatesAvro();
@@ -206,6 +212,7 @@ public class RetrieveMetrics {
         updateTicketCommitDatesZookkeeper();
         updateTicketCommitDatesStorm();
         updateTicketCommitDatesTajo();
+        updateTicketCommitDatesSyncope();
 
     }
 
@@ -224,6 +231,24 @@ public class RetrieveMetrics {
             latestCommitDate.ifPresent(resolutionDate -> {
                 ticket.setResolutionDate(resolutionDate);
                 ticket.setFixedVersion(afterBeforeDate(resolutionDate, releasesListBookkeeper));
+            }); }
+
+    }
+    
+  //aggiorna data di risoluzione e la versione fixed version per ogni ticket
+    private static void setResolutionDateAndFVSyncope() {
+        for (Ticket ticket : ticketListSyncope) {
+            ArrayList<LocalDateTime> commitDateList = ticket.getCommitList().stream()
+                    .map(commit -> commit.getAuthorIdent().getWhen().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime())
+                    .sorted()
+                    .collect(Collectors.toCollection(ArrayList::new));
+
+            Optional<LocalDateTime> latestCommitDate = commitDateList.stream()
+                    .max(LocalDateTime::compareTo);
+
+            latestCommitDate.ifPresent(resolutionDate -> {
+                ticket.setResolutionDate(resolutionDate);
+                ticket.setFixedVersion(afterBeforeDate(resolutionDate, releasesListSyncope));
             }); }
 
     }
@@ -315,6 +340,8 @@ public class RetrieveMetrics {
         ticketListOpenjpa.removeIf(ticket -> ticket.getResolutionDate() == null);
         ticketListAvro.removeIf(ticket -> ticket.getResolutionDate() == null);
         ticketListAccumulo.removeIf(ticket -> ticket.getResolutionDate() == null);
+        ticketListSyncope.removeIf(ticket -> ticket.getResolutionDate() == null);
+
 
 
     }
@@ -362,6 +389,24 @@ public class RetrieveMetrics {
             });
     }
     
+  //verifica che vengano rispettate determinate condizioni e setta AV
+    public static void checkTicketSyncope() {
+        ticketListSyncope.stream()
+            .filter(ticket -> ticket.getInjectedVersion() != 0)
+            .forEach(ticket -> {
+                if (ordering(ticket)) {
+                    List<Integer> affectedVersions = new ArrayList<>();
+                    for (int i = ticket.getInjectedVersion(); i < ticket.getFixedVersion(); i++) {
+                        affectedVersions.add(i);
+                    }
+                    ticket.setAffectedVersion(affectedVersions);
+                } else {
+                    setErrorTicket(ticket);
+                }
+                handleOV(ticket);
+            });
+    }
+    
     public static void checkTicketAvro() {
         ticketListAvro.stream()
             .filter(ticket -> ticket.getInjectedVersion() != 0)
@@ -380,7 +425,7 @@ public class RetrieveMetrics {
     }
     
     public static void checkTicketTajo() {
-        ticketListAvro.stream()
+        ticketListTajo.stream()
             .filter(ticket -> ticket.getInjectedVersion() != 0)
             .forEach(ticket -> {
                 if (ordering(ticket)) {
@@ -574,6 +619,9 @@ public class RetrieveMetrics {
     private static List<Release> releasesListTajo;
     private static List<Ticket> ticketListTajo;
     private static List<RevCommit> commitListTajo;
+    private static List<Release> releasesListSyncope;
+    private static List<Ticket> ticketListSyncope;
+    private static List<RevCommit> commitListSyncope;
 
     public static void main(String[] args) throws IllegalStateException, GitAPIException, IOException, JSONException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, SecurityException {
     	
@@ -585,9 +633,7 @@ public class RetrieveMetrics {
         ticketListBookkeeper = Ticket.getTickets(releasesListBookkeeper, BOOKKEEPER);
         ticketListOpenjpa = Ticket.getTickets(releasesListOpenjpa, OPENJPA);
         
-        
-        
-        
+
         releasesListAvro = Release.getListRelease(AVRO);
         commitListAvro = getAllCommits(releasesListAvro, Paths.get(percorso + AVRO.toLowerCase()));
         ticketListAvro = Ticket.getTickets(releasesListAvro, AVRO);
@@ -600,20 +646,33 @@ public class RetrieveMetrics {
         releasesListTajo = Release.getListRelease(TAJO);
         commitListTajo = getAllCommits(releasesListTajo, Paths.get(percorso + TAJO.toLowerCase()));
         ticketListTajo = Ticket.getTickets(releasesListTajo, TAJO);
+        releasesListSyncope = Release.getListRelease(SYNCOPE);
+        commitListSyncope = getAllCommits(releasesListSyncope, Paths.get(percorso + SYNCOPE.toLowerCase()));
+        ticketListSyncope = Ticket.getTickets(releasesListSyncope, SYNCOPE);
         
-        
+       //SYNCOPE
+        linkFunction();
+        removeObsoleteReleasesAndTickets(releasesListSyncope, ticketListSyncope);
+        checkTicketSyncope(); 
+        FileRepositoryBuilder repositoryBuilderSyncope = new FileRepositoryBuilder();
+        repository = repositoryBuilderSyncope.setGitDir(new File(percorso + SYNCOPE.toLowerCase() + endPath)).readEnvironment().findGitDir().setMustExist(true).build();
+        Collections.reverse(ticketListSyncope); 
+        Ticket.ticketDatasetSyncope(ticketListSyncope);
+        logger.log(Level.INFO, "P SYNCOPE: ");
+        obtainingPOtherProject(ticketListSyncope);
         
         //TAJO
         linkFunction();
         removeObsoleteReleasesAndTickets(releasesListTajo, ticketListTajo);
         checkTicketTajo(); 
         FileRepositoryBuilder repositoryBuilderTajo = new FileRepositoryBuilder();
-        repository = repositoryBuilderTajo.setGitDir(new File(percorso + "tajo" + endPath)).readEnvironment().findGitDir().setMustExist(true).build();
+        repository = repositoryBuilderTajo.setGitDir(new File(percorso + TAJO.toLowerCase() + endPath)).readEnvironment().findGitDir().setMustExist(true).build();
         Collections.reverse(ticketListTajo); 
         Ticket.ticketDatasetTajo(ticketListTajo);
         logger.log(Level.INFO, "P TAJO: ");
-
         obtainingPOtherProject(ticketListTajo);
+        
+        
         //STORM
         linkFunction();
         removeObsoleteReleasesAndTickets(releasesListStorm, ticketListStorm);
@@ -623,11 +682,9 @@ public class RetrieveMetrics {
         Collections.reverse(ticketListStorm); 
         Ticket.ticketDatasetStorm(ticketListStorm);
         logger.log(Level.INFO, "P STORM: ");
-
         obtainingPOtherProject(ticketListStorm);
         
         //AVRO
-        
         linkFunction();
         removeObsoleteReleasesAndTickets(releasesListAvro, ticketListAvro);
         checkTicketAvro(); 
@@ -636,15 +693,10 @@ public class RetrieveMetrics {
         Collections.reverse(ticketListAvro); 
         Ticket.ticketDatasetAvro(ticketListAvro);
         logger.log(Level.INFO, "P AVRO: ");
-
         obtainingPOtherProject(ticketListAvro);
         
         //ACCUMULO
-
-        
         linkFunction();
-
-       
         removeObsoleteReleasesAndTickets(releasesListAccumulo, ticketListAccumulo);
         checkTicketZookkeeper(); 
         FileRepositoryBuilder repositoryBuilderZookkeeper = new FileRepositoryBuilder();
@@ -652,25 +704,25 @@ public class RetrieveMetrics {
         Collections.reverse(ticketListAccumulo); 
         Ticket.ticketDatasetAccumulo(ticketListAccumulo);
         logger.log(Level.INFO, "P ACCUMULO: ");
-
         obtainingPOtherProject(ticketListAccumulo);
-        medianP(ticketListAvro, ticketListAccumulo, ticketListStorm, ticketListTajo);
-        //salvataggio file P
+        medianP(ticketListAvro, ticketListAccumulo, ticketListStorm, ticketListTajo,ticketListSyncope);
+        
+        
+        //salvataggio file per proportion
         String filename = percorsoProportion + "proportion.csv";
         writeProjectsToFile(filename);
+        
+        
         //Bookkeeper
         linkFunction();
-
         removeObsoleteReleasesAndTickets(releasesListBookkeeper, ticketListBookkeeper);
         checkTicketBookkeeper(); 
         FileRepositoryBuilder repositoryBuilderBookkeeper = new FileRepositoryBuilder();
         repository = repositoryBuilderBookkeeper.setGitDir(new File(percorso + BOOKKEEPER.toLowerCase() + endPath)).readEnvironment().findGitDir().setMustExist(true).build();
         Collections.reverse(ticketListBookkeeper); 
 
-
         findProportion(ticketListBookkeeper);
-
-        checkTicketBookkeeper();  
+        checkTicketBookkeeper(); 
         Ticket.ticketDatasetBookkeeper(ticketListBookkeeper);
 
         getJavaFiles(Paths.get(percorso + BOOKKEEPER.toLowerCase()), releasesListBookkeeper);
@@ -679,19 +731,13 @@ public class RetrieveMetrics {
         createCSV(releasesListBookkeeper, BOOKKEEPER.toLowerCase());
         
         //openjpa
-
         linkFunction();
-
         removeObsoleteReleasesAndTickets(releasesListOpenjpa, ticketListOpenjpa);
         checkTicketOpenjpa();
         FileRepositoryBuilder repositoryBuilderOpenjpa = new FileRepositoryBuilder();
-
-        repository = repositoryBuilderOpenjpa.setGitDir(new File(percorso + OPENJPA.toLowerCase() + endPath)).readEnvironment().findGitDir().setMustExist(true).build();
-              
-        logger.log(Level.INFO, "Numero ticket = {0}.", ticketListOpenjpa.size());
+        repository = repositoryBuilderOpenjpa.setGitDir(new File(percorso + OPENJPA.toLowerCase() + endPath)).readEnvironment().findGitDir().setMustExist(true).build();              
         Collections.reverse(ticketListOpenjpa);
         Ticket.ticketDatasetOpenjpa(ticketListOpenjpa);
-
 
         findProportion(ticketListOpenjpa);
         checkTicketOpenjpa(); 
@@ -700,7 +746,6 @@ public class RetrieveMetrics {
         isBuggy(releasesListOpenjpa, ticketListOpenjpa); 
         getRepo(releasesListOpenjpa, percorso + OPENJPA.toLowerCase() + endPath);
         createCSV(releasesListOpenjpa, OPENJPA.toLowerCase());
-
         logger.log(Level.INFO, "Creando il file .Arff");
         
         //csvLoader openjpa
@@ -1283,6 +1328,7 @@ public class RetrieveMetrics {
      //----proportion----
         public static void findProportion(List<Ticket> ticketList) {
             List<Ticket> injectedVersion = new ArrayList<>();
+            
             findInjectedVersion(ticketList, injectedVersion);
 
             int total = ticketList.size();
@@ -1298,10 +1344,13 @@ public class RetrieveMetrics {
                 .forEach(ticket -> {
                     ticket.setInjectedVersion(ticket.getFixedVersion());
                     injectedVersion.add(ticket);
+                
+             
+                
                 });
     }
         
-        //se non contiene IV -> movingWidows
+       
         private static void processTicketList(List<Ticket> ticketList, List<Ticket> injectedVersion, List<Ticket> newProportionTicket) {
             ticketList.stream()
                      .filter(ticket -> !injectedVersion.contains(ticket))
@@ -1311,10 +1360,13 @@ public class RetrieveMetrics {
                          } else {
                              injectedProportion(newProportionTicket, ticket);
                          }
+                         if(ticket.getOpenVersion() == 1) {
+                        	 ticket.setInjectedVersion(1);
+                         }
                      });
         }
 
-        //rimuovi quelli maggiori di 1%
+        //rimuovi quelli maggiori di 2%
         public static void movingWindows(List<Ticket> movingWindow, Ticket ticket) {
             
             
@@ -1334,19 +1386,21 @@ public class RetrieveMetrics {
             float pNew = p/movingWindowsCount;
             int predictedIv = 0;
             if(newProportionTicket.size() < movingWindowsCount) {
-            	predictedIv = calculatePredictedIv(ticket, medianP(ticketListAvro, ticketListAccumulo, ticketListStorm, ticketListTajo));
+            	
+            	predictedIv = calculatePredictedIv(ticket, medianP(ticketListAvro, ticketListAccumulo, ticketListStorm, ticketListTajo, ticketListSyncope));
 
-            }else if(newProportionTicket.size() >= movingWindowsCount) {
+            }else if(newProportionTicket.size() == movingWindowsCount) {
                 predictedIv = calculatePredictedIv(ticket, pNew);
 
 
 
             }
-            if(predictedIv < 0) {
-            	predictedIv = (int) 1.0;
-            }
-
-            ticket.setInjectedVersion(Math.min(predictedIv, ticket.getOpenVersion()));
+            
+            //System.out.println("Predicted IV "  + ticket.getTicketID() + ":" + Float.toString(predictedIv));
+            if(predictedIv <= 1) {
+            	ticket.setInjectedVersion(1);
+            }else if(predictedIv > 1) {
+            ticket.setInjectedVersion(Math.min(predictedIv, ticket.getOpenVersion()));}
         }
 
         private static float calculateP(List<Ticket> newProportionTicket) {
@@ -1429,12 +1483,13 @@ public class RetrieveMetrics {
             }
         }
         
-        private static float medianP(List<Ticket> tickets, List<Ticket> tickets2, List<Ticket> tickets3, List<Ticket> tickets4) {
+        private static float medianP(List<Ticket> tickets, List<Ticket> tickets2, List<Ticket> tickets3, List<Ticket> tickets4, List<Ticket> tickets5) {
             float[] values = {
                 obtainingPOtherProject(tickets),
                 obtainingPOtherProject(tickets3),
                 obtainingPOtherProject(tickets2),
-                obtainingPOtherProject(tickets4)
+                obtainingPOtherProject(tickets4),
+                obtainingPOtherProject(tickets5)
             };
 
             Arrays.sort(values);
@@ -1460,10 +1515,12 @@ public class RetrieveMetrics {
                 AVRO,
                 STORM,
                 ACCUMULO,
-                TAJO
+                TAJO,
+                SYNCOPE
                
         );
-        
+    	private static final String ERROR = "Errore nella crezione del dataset";
+
         public static void writeProjectsToFile(String fileName) {
         	
             try (FileWriter writer = new FileWriter(fileName)) {
@@ -1481,12 +1538,12 @@ public class RetrieveMetrics {
                 List<Ticket> tickets2 = getTicketListForProject(projects.get(1));
                 List<Ticket> tickets3 = getTicketListForProject(projects.get(2));
                 List<Ticket> tickets4 = getTicketListForProject(projects.get(3));
-                float medianValue = medianP(tickets, tickets2, tickets3, tickets4);
+                List<Ticket> tickets5 = getTicketListForProject(projects.get(4));
+                float medianValue = medianP(tickets, tickets2, tickets3, tickets4, tickets5);
                 writer.write("Median P ," + medianValue + System.lineSeparator());
 
             } catch (IOException e) {
-		logger.info(ERROR);
-
+  	  		  	logger.info(ERROR);
             }
         }
 
@@ -1502,6 +1559,8 @@ public class RetrieveMetrics {
                     return ticketListStorm;
                 case ACCUMULO:
                     return ticketListAccumulo;
+                case SYNCOPE:
+                    return ticketListSyncope;
                 
                 default:
                     return Collections.emptyList();
