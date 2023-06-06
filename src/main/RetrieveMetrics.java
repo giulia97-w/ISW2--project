@@ -1396,7 +1396,6 @@ public class RetrieveMetrics {
 
             }
             
-            //System.out.println("Predicted IV "  + ticket.getTicketID() + ":" + Float.toString(predictedIv));
             if(predictedIv <= 1) {
             	ticket.setInjectedVersion(1);
             }else if(predictedIv > 1) {
