@@ -657,7 +657,7 @@ public class RetrieveMetrics {
         FileRepositoryBuilder repositoryBuilderSyncope = new FileRepositoryBuilder();
         repository = repositoryBuilderSyncope.setGitDir(new File(percorso + SYNCOPE.toLowerCase() + endPath)).readEnvironment().findGitDir().setMustExist(true).build();
         Collections.reverse(ticketListSyncope); 
-        Ticket.ticketDatasetSyncope(ticketListSyncope);
+        Ticket.ticketDataset(ticketListSyncope, SYNCOPE);
         logger.log(Level.INFO, "P SYNCOPE: ");
         obtainingPOtherProject(ticketListSyncope);
         
@@ -668,7 +668,7 @@ public class RetrieveMetrics {
         FileRepositoryBuilder repositoryBuilderTajo = new FileRepositoryBuilder();
         repository = repositoryBuilderTajo.setGitDir(new File(percorso + TAJO.toLowerCase() + endPath)).readEnvironment().findGitDir().setMustExist(true).build();
         Collections.reverse(ticketListTajo); 
-        Ticket.ticketDatasetTajo(ticketListTajo);
+        Ticket.ticketDataset(ticketListTajo, TAJO);
         logger.log(Level.INFO, "P TAJO: ");
         obtainingPOtherProject(ticketListTajo);
         
@@ -680,7 +680,7 @@ public class RetrieveMetrics {
         FileRepositoryBuilder repositoryBuilderStorm = new FileRepositoryBuilder();
         repository = repositoryBuilderStorm.setGitDir(new File(percorso + "storm" + endPath)).readEnvironment().findGitDir().setMustExist(true).build();
         Collections.reverse(ticketListStorm); 
-        Ticket.ticketDatasetStorm(ticketListStorm);
+        Ticket.ticketDataset(ticketListStorm, STORM);
         logger.log(Level.INFO, "P STORM: ");
         obtainingPOtherProject(ticketListStorm);
         
@@ -691,7 +691,7 @@ public class RetrieveMetrics {
         FileRepositoryBuilder repositoryBuilderAvro = new FileRepositoryBuilder();
         repository = repositoryBuilderAvro.setGitDir(new File(percorso + "avro" + endPath)).readEnvironment().findGitDir().setMustExist(true).build();
         Collections.reverse(ticketListAvro); 
-        Ticket.ticketDatasetAvro(ticketListAvro);
+        Ticket.ticketDataset(ticketListAvro, AVRO);
         logger.log(Level.INFO, "P AVRO: ");
         obtainingPOtherProject(ticketListAvro);
         
@@ -702,7 +702,7 @@ public class RetrieveMetrics {
         FileRepositoryBuilder repositoryBuilderZookkeeper = new FileRepositoryBuilder();
         repository = repositoryBuilderZookkeeper.setGitDir(new File(percorso + ACCUMULO.toLowerCase() + endPath)).readEnvironment().findGitDir().setMustExist(true).build();
         Collections.reverse(ticketListAccumulo); 
-        Ticket.ticketDatasetAccumulo(ticketListAccumulo);
+        Ticket.ticketDataset(ticketListAccumulo,ACCUMULO);
         logger.log(Level.INFO, "P ACCUMULO: ");
         obtainingPOtherProject(ticketListAccumulo);
         medianP(ticketListAvro, ticketListAccumulo, ticketListStorm, ticketListTajo,ticketListSyncope);
@@ -723,7 +723,7 @@ public class RetrieveMetrics {
 
         findProportion(ticketListBookkeeper);
         checkTicketBookkeeper(); 
-        Ticket.ticketDatasetBookkeeper(ticketListBookkeeper);
+        Ticket.ticketDataset(ticketListBookkeeper, BOOKKEEPER);
 
         getJavaFiles(Paths.get(percorso + BOOKKEEPER.toLowerCase()), releasesListBookkeeper);
         isBuggy(releasesListBookkeeper, ticketListBookkeeper); 
@@ -737,7 +737,7 @@ public class RetrieveMetrics {
         FileRepositoryBuilder repositoryBuilderOpenjpa = new FileRepositoryBuilder();
         repository = repositoryBuilderOpenjpa.setGitDir(new File(percorso + OPENJPA.toLowerCase() + endPath)).readEnvironment().findGitDir().setMustExist(true).build();              
         Collections.reverse(ticketListOpenjpa);
-        Ticket.ticketDatasetOpenjpa(ticketListOpenjpa);
+        Ticket.ticketDataset(ticketListOpenjpa, OPENJPA);
 
         findProportion(ticketListOpenjpa);
         checkTicketOpenjpa(); 
@@ -1388,14 +1388,17 @@ public class RetrieveMetrics {
             if(newProportionTicket.size() < movingWindowsCount) {
             	
             	predictedIv = calculatePredictedIv(ticket, medianP(ticketListAvro, ticketListAccumulo, ticketListStorm, ticketListTajo, ticketListSyncope));
+                //System.out.println("Pnew1 "  + ticket.getTicketID() + ":" + Float.toString(medianP(ticketListAvro, ticketListAccumulo, ticketListStorm, ticketListTajo,ticketListSyncope)));
 
             }else if(newProportionTicket.size() == movingWindowsCount) {
                 predictedIv = calculatePredictedIv(ticket, pNew);
+                //System.out.println("Pnew "  + ticket.getTicketID() + ":" + Float.toString(p/movingWindowsCount));
 
 
 
             }
             
+            //System.out.println("Predicted IV "  + ticket.getTicketID() + ":" + Float.toString(predictedIv));
             if(predictedIv <= 1) {
             	ticket.setInjectedVersion(1);
             }else if(predictedIv > 1) {
@@ -1419,6 +1422,7 @@ public class RetrieveMetrics {
             int ov = ticket.getOpenVersion();
             float predictedIV = (fv - (fv - ov) * pNew);
             
+            //System.out.println("Predicted IV "  + ticket.getTicketID() + ":" + Float.toString(pNew));
             
             return  (int) predictedIV;
         }
@@ -1438,6 +1442,7 @@ public class RetrieveMetrics {
             if(fv!=ov ) { 
 	
             p = (fv - iv) / (fv - ov);
+            //System.out.println("P "  + ticket.getTicketID() + ":" + Float.toString(p));
             }
 
             return p;
@@ -1476,6 +1481,7 @@ public class RetrieveMetrics {
             
             if (count > 0) {
                 
+                //System.out.println("P  :"   + sumP/count);
 				return sumP / count;
             } else {
                 return 0;
@@ -1505,6 +1511,7 @@ public class RetrieveMetrics {
                 median = values[middle];
             }
 
+            //System.out.println("Mediana: " + median);
 
             return median;
         }
@@ -1541,6 +1548,7 @@ public class RetrieveMetrics {
                 float medianValue = medianP(tickets, tickets2, tickets3, tickets4, tickets5);
                 writer.write("Median P ," + medianValue + System.lineSeparator());
 
+                //System.out.println("Scrittura completata nel file: " + fileName);
             } catch (IOException e) {
   	  		  	logger.info(ERROR);
             }
