@@ -54,14 +54,7 @@ public class Ticket {
     public String getTicketID() {
         return id;
     }
-    
-    public int getP(){
-        return this.p;
-    }
-    public void setP(int p)
-    {
-        this.p=p;
-    }
+  
     
 
     public List<Integer> getAffectedVersion() {
@@ -171,14 +164,12 @@ public class Ticket {
         ticket.setOpenVersion(RetrieveMetrics.afterBeforeDate(creationDate, releases));
         return ticket;
     }
-    public static final String PROJECT = "BOOKKEEPER";
-	public static final String PROJECT1 = "OPENJPA";
     
 	public static void ticketDatasetBookkeeper(List<Ticket> ticketList) {
 	  logger.info("Creando file BOOKKEEPERTickets.csv");
 
   	  try (
-  	   FileWriter fileWriter = new FileWriter(PROJECT + TICKET_NAME+".csv")) {
+  	   FileWriter fileWriter = new FileWriter("BOOKKEEPER" + TICKET_NAME+".csv")) {
   	   
   	   fileWriter.append(HEADER_ROW);
   	   for (Ticket ticket : ticketList) {
@@ -306,7 +297,7 @@ public class Ticket {
 	    logger.info("Creando file OPENJPATickets.csv");
 
 	  	  try (
-	  	   FileWriter fileWriter = new FileWriter(PROJECT1 + TICKET_NAME +".csv")) {
+	  	   FileWriter fileWriter = new FileWriter("OPENJPA" + TICKET_NAME +".csv")) {
 	  	   
 	  	   fileWriter.append(HEADER_ROW);
 	  	   for (Ticket ticket : ticketList) {
