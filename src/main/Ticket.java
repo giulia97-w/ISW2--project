@@ -4,14 +4,11 @@ import org.eclipse.jgit.revwalk.RevCommit;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import weka.weka;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.System.Logger.Level;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -54,7 +51,14 @@ public class Ticket {
     public String getTicketID() {
         return id;
     }
-  
+    
+    public int getP(){
+        return this.p;
+    }
+    public void setP(int p)
+    {
+        this.p=p;
+    }
     
 
     public List<Integer> getAffectedVersion() {
@@ -164,161 +168,175 @@ public class Ticket {
         ticket.setOpenVersion(RetrieveMetrics.afterBeforeDate(creationDate, releases));
         return ticket;
     }
+    public static final String PROJECT = "BOOKKEEPER";
+	public static final String PROJECT1 = "OPENJPA";
     
 	public static void ticketDatasetBookkeeper(List<Ticket> ticketList) {
-	  logger.info("Creando file BOOKKEEPERTickets.csv");
+	    logger.info("Creando file BOOKKEEPERTickets.csv");
 
-  	  try (
-  	   FileWriter fileWriter = new FileWriter("BOOKKEEPER" + TICKET_NAME+".csv")) {
-  	   
-  	   fileWriter.append(HEADER_ROW);
-  	   for (Ticket ticket : ticketList) {
-  		   fileWriter.append(ticket.getTicketID());
-  		   fileWriter.append(";");
-  		   fileWriter.append(ticket.getInjectedVersion().toString());
-  		   fileWriter.append(";");
-  		   fileWriter.append(ticket.getOpenVersion().toString());
-  		   fileWriter.append(";");
-  		   fileWriter.append(ticket.getFixedVersion().toString());
-  		   fileWriter.append(";");
-  		   fileWriter.append(ticket.getAffectedVersion().toString());
-  		   fileWriter.append("\n");
-  	   }
-  	   
-  	  } catch (Exception ex) {
-  		  logger.info(ERROR);
-  	  
-  	  	}
-  	 }	
-	public static void ticketDatasetStorm(List<Ticket> ticketList) {
-		  logger.info("Creando file STORMTickets.csv");
+	    String filePath = PROJECT + TICKET_NAME + ".csv";
 
-	  	  try (
-	  	   FileWriter fileWriter = new FileWriter("STORM" + TICKET_NAME+".csv")) {
-	  	   
-	  	   fileWriter.append(HEADER_ROW);
-	  	   for (Ticket ticket : ticketList) {
-	  		   fileWriter.append(ticket.getTicketID());
-	  		   fileWriter.append(";");
-	  		   fileWriter.append(ticket.getInjectedVersion().toString());
-	  		   fileWriter.append(";");
-	  		   fileWriter.append(ticket.getOpenVersion().toString());
-	  		   fileWriter.append(";");
-	  		   fileWriter.append(ticket.getFixedVersion().toString());
-	  		   fileWriter.append(";");
-	  		   fileWriter.append(ticket.getAffectedVersion().toString());
-	  		   fileWriter.append("\n");
-	  	   }
-	  	   
-	  	  } catch (Exception ex) {
+	    try (FileWriter fileWriter = new FileWriter(filePath)) {
+	        fileWriter.append(HEADER_ROW);
+
+	        for (Ticket ticket : ticketList) {
+	            StringBuilder lineBuilder = new StringBuilder();
+	            lineBuilder.append(ticket.getTicketID()).append(";");
+	            lineBuilder.append(ticket.getInjectedVersion()).append(";");
+	            lineBuilder.append(ticket.getOpenVersion()).append(";");
+	            lineBuilder.append(ticket.getFixedVersion()).append(";");
+	            lineBuilder.append(ticket.getAffectedVersion()).append("\n");
+
+	            fileWriter.append(lineBuilder.toString());
+	        }
+
+	    } catch (IOException ex) {
 	  		  logger.info(ERROR);
-	  	  
-	  	  	}
-	  	 }
+	    }
+	}
+	
+	public static void ticketDatasetStorm(List<Ticket> ticketList) {
+	    logger.info("Creando file STORMickets.csv");
+
+	    String filePath = "STORM" + TICKET_NAME + ".csv";
+
+	    try (FileWriter fileWriter = new FileWriter(filePath)) {
+	        fileWriter.append(HEADER_ROW);
+
+	        for (Ticket ticket : ticketList) {
+	            StringBuilder lineBuilder = new StringBuilder();
+	            lineBuilder.append(ticket.getTicketID()).append(";");
+	            lineBuilder.append(ticket.getInjectedVersion()).append(";");
+	            lineBuilder.append(ticket.getOpenVersion()).append(";");
+	            lineBuilder.append(ticket.getFixedVersion()).append(";");
+	            lineBuilder.append(ticket.getAffectedVersion()).append("\n");
+
+	            fileWriter.append(lineBuilder.toString());
+	        }
+
+	    } catch (IOException ex) {
+	  		  logger.info(ERROR);
+	    }
+	}
 	
 	public static void ticketDatasetTajo(List<Ticket> ticketList) {
-		  logger.info("Creando file TAJOTickets.csv");
+	    logger.info("Creando file TAJOTickets.csv");
 
-	  	  try (
-	  	   FileWriter fileWriter = new FileWriter("TAJO" + TICKET_NAME+".csv")) {
-	  	   
-	  	   fileWriter.append(HEADER_ROW);
-	  	   for (Ticket ticket : ticketList) {
-	  		   fileWriter.append(ticket.getTicketID());
-	  		   fileWriter.append(";");
-	  		   fileWriter.append(ticket.getInjectedVersion().toString());
-	  		   fileWriter.append(";");
-	  		   fileWriter.append(ticket.getOpenVersion().toString());
-	  		   fileWriter.append(";");
-	  		   fileWriter.append(ticket.getFixedVersion().toString());
-	  		   fileWriter.append(";");
-	  		   fileWriter.append(ticket.getAffectedVersion().toString());
-	  		   fileWriter.append("\n");
-	  	   }
-	  	   
-	  	  } catch (Exception ex) {
+	    String filePath = "TAJO" + TICKET_NAME + ".csv";
+
+	    try (FileWriter fileWriter = new FileWriter(filePath)) {
+	        fileWriter.append(HEADER_ROW);
+
+	        for (Ticket ticket : ticketList) {
+	            StringBuilder lineBuilder = new StringBuilder();
+	            lineBuilder.append(ticket.getTicketID()).append(";");
+	            lineBuilder.append(ticket.getInjectedVersion()).append(";");
+	            lineBuilder.append(ticket.getOpenVersion()).append(";");
+	            lineBuilder.append(ticket.getFixedVersion()).append(";");
+	            lineBuilder.append(ticket.getAffectedVersion()).append("\n");
+
+	            fileWriter.append(lineBuilder.toString());
+	        }
+
+	    } catch (IOException ex) {
 	  		  logger.info(ERROR);
-	  	  
-	  	  	}
-	  	 }
+	    }
+	}
 	public static void ticketDatasetAvro(List<Ticket> ticketList) {
-		  logger.info("Creando file AvroTickets.csv");
+	    logger.info("Creando file AVROTickets.csv");
 
-	  	  try (
-	  	   FileWriter fileWriter = new FileWriter("AVRO" + TICKET_NAME +".csv")) {
-	  	   
-	  	   fileWriter.append(HEADER_ROW);
-	  	   for (Ticket ticket : ticketList) {
-	  		   fileWriter.append(ticket.getTicketID());
-	  		   fileWriter.append(";");
-	  		   fileWriter.append(ticket.getInjectedVersion().toString());
-	  		   fileWriter.append(";");
-	  		   fileWriter.append(ticket.getOpenVersion().toString());
-	  		   fileWriter.append(";");
-	  		   fileWriter.append(ticket.getFixedVersion().toString());
-	  		   fileWriter.append(";");
-	  		   fileWriter.append(ticket.getAffectedVersion().toString());
-	  		   fileWriter.append("\n");
-	  	   }
-	  	   
-	  	  } catch (Exception ex) {
+	    String filePath = "AVRO" + TICKET_NAME + ".csv";
+
+	    try (FileWriter fileWriter = new FileWriter(filePath)) {
+	        fileWriter.append(HEADER_ROW);
+
+	        for (Ticket ticket : ticketList) {
+	            StringBuilder lineBuilder = new StringBuilder();
+	            lineBuilder.append(ticket.getTicketID()).append(";");
+	            lineBuilder.append(ticket.getInjectedVersion()).append(";");
+	            lineBuilder.append(ticket.getOpenVersion()).append(";");
+	            lineBuilder.append(ticket.getFixedVersion()).append(";");
+	            lineBuilder.append(ticket.getAffectedVersion()).append("\n");
+
+	            fileWriter.append(lineBuilder.toString());
+	        }
+
+	    } catch (IOException ex) {
 	  		  logger.info(ERROR);
-	  	  
-	  	  	}
-	  	 }
+	    }
+	}
 	
-	public static void ticketDatasetAccumulo(List<Ticket> ticketList) {
-		  logger.info("Creando file AccumuloTickets.csv");
+	public static void ticketDatasetAcuumulo(List<Ticket> ticketList) {
+	    logger.info("Creando file ACCUMULOTickets.csv");
 
-	  	  try (
-	  	   FileWriter fileWriter = new FileWriter("ACCUMULO" + TICKET_NAME+".csv")) {
-	  	   
-	  	   fileWriter.append(HEADER_ROW);
-	  	   for (Ticket ticket : ticketList) {
-	  		   fileWriter.append(ticket.getTicketID());
-	  		   fileWriter.append(";");
-	  		   fileWriter.append(ticket.getInjectedVersion().toString());
-	  		   fileWriter.append(";");
-	  		   fileWriter.append(ticket.getOpenVersion().toString());
-	  		   fileWriter.append(";");
-	  		   fileWriter.append(ticket.getFixedVersion().toString());
-	  		   fileWriter.append(";");
-	  		   fileWriter.append(ticket.getAffectedVersion().toString());
-	  		   fileWriter.append("\n");
-	  	   }
-	  	   
-	  	  } catch (Exception ex) {
+	    String filePath = "ACCUMULO" + TICKET_NAME + ".csv";
+
+	    try (FileWriter fileWriter = new FileWriter(filePath)) {
+	        fileWriter.append(HEADER_ROW);
+
+	        for (Ticket ticket : ticketList) {
+	            StringBuilder lineBuilder = new StringBuilder();
+	            lineBuilder.append(ticket.getTicketID()).append(";");
+	            lineBuilder.append(ticket.getInjectedVersion()).append(";");
+	            lineBuilder.append(ticket.getOpenVersion()).append(";");
+	            lineBuilder.append(ticket.getFixedVersion()).append(";");
+	            lineBuilder.append(ticket.getAffectedVersion()).append("\n");
+
+	            fileWriter.append(lineBuilder.toString());
+	        }
+
+	    } catch (IOException ex) {
 	  		  logger.info(ERROR);
-	  	  
-	  	  	}
-	  	 }	
+	    }
+	}	
 	
 	public static void ticketDatasetOpenjpa(List<Ticket> ticketList) {
 	    logger.info("Creando file OPENJPATickets.csv");
 
-	  	  try (
-	  	   FileWriter fileWriter = new FileWriter("OPENJPA" + TICKET_NAME +".csv")) {
-	  	   
-	  	   fileWriter.append(HEADER_ROW);
-	  	   for (Ticket ticket : ticketList) {
-	  		   fileWriter.append(ticket.getTicketID());
-	  		   fileWriter.append(";");
-	  		   fileWriter.append(ticket.getInjectedVersion().toString());
-	  		   fileWriter.append(";");
-	  		   fileWriter.append(ticket.getOpenVersion().toString());
-	  		   fileWriter.append(";");
-	  		   fileWriter.append(ticket.getFixedVersion().toString());
-	  		   fileWriter.append(";");
-	  		   fileWriter.append(ticket.getAffectedVersion().toString());
-	  		   fileWriter.append("\n");
-	  	   }
-	  	   
-	  	  } catch (Exception ex) {
-	  		  logger.info(ERROR);
+	    String filePath = "OPENJPA" + TICKET_NAME + ".csv";
 
-	  	  
-	  	  	}
-	  	 }
+	    try (FileWriter fileWriter = new FileWriter(filePath)) {
+	        fileWriter.append(HEADER_ROW);
+
+	        for (Ticket ticket : ticketList) {
+	            StringBuilder lineBuilder = new StringBuilder();
+	            lineBuilder.append(ticket.getTicketID()).append(";");
+	            lineBuilder.append(ticket.getInjectedVersion()).append(";");
+	            lineBuilder.append(ticket.getOpenVersion()).append(";");
+	            lineBuilder.append(ticket.getFixedVersion()).append(";");
+	            lineBuilder.append(ticket.getAffectedVersion()).append("\n");
+
+	            fileWriter.append(lineBuilder.toString());
+	        }
+
+	    } catch (IOException ex) {
+	  		  logger.info(ERROR);
+	    }
+	}
+	
+	public static void ticketDatasetSyncope(List<Ticket> ticketList) {
+	    logger.info("Creando file SYNCOPETickets.csv");
+
+	    String filePath = "SYNCOPE" + TICKET_NAME + ".csv";
+
+	    try (FileWriter fileWriter = new FileWriter(filePath)) {
+	        fileWriter.append(HEADER_ROW);
+
+	        for (Ticket ticket : ticketList) {
+	            StringBuilder lineBuilder = new StringBuilder();
+	            lineBuilder.append(ticket.getTicketID()).append(";");
+	            lineBuilder.append(ticket.getInjectedVersion()).append(";");
+	            lineBuilder.append(ticket.getOpenVersion()).append(";");
+	            lineBuilder.append(ticket.getFixedVersion()).append(";");
+	            lineBuilder.append(ticket.getAffectedVersion()).append("\n");
+
+	            fileWriter.append(lineBuilder.toString());
+	        }
+
+	    } catch (IOException ex) {
+	  		  logger.info(ERROR);
+	    }
+	}
 
 
 
