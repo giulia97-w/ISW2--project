@@ -238,7 +238,11 @@ public class weka{
 	public static List<Instances> featureSelection(Instances train, Instances test) throws Exception {
 		return applyFeatureSelection(createFeatureSelectionFilter(), train, test);
 		}
-
+	/*
+	 * Resample and apply it with noReplacement=false, biasToUniformClass=1.0, and 
+	 * sampleSizePercent=Y, where Y/2 is (approximately) the percentage of data that 
+	 * belongs to the majority class.
+	 */
 
 	//oversampling: aumento numero istanze della classe minoritaria
 	//undersampling: riduco numero istanze della classe maggioritaria
@@ -246,7 +250,10 @@ public class weka{
 	private static Filter getBalancingFilter(String balancing, Instances train) throws Exception {
 	    Filter filter = null;
 	    if ("OVERSAMPLING".equals(balancing)) {
-	        filter = getResampleFilter(train, false, 1.0, foundPerc(train), new String[]{"-B", "1.0", "-Z", "172.08"});
+	    	int attributeNumber = train.numAttributes();
+	    	double majority = train.attributeStats(attributeNumber-1).nominalCounts[1];
+	    	String outputSizePerc = Double.toString(2*100*(majority/train.size()));
+	        filter = getResampleFilter(train,  new String[]{"-B", "1.0", "-Z", outputSizePerc});
 	    } else if ("UNDERSAMPLING".equals(balancing)) {
 	        filter = getSpreadSubsampleFilter(train, new String[]{"-M", "1.0"});
 	    } else if ("SMOTE".equals(balancing)) {
@@ -265,12 +272,11 @@ public class weka{
 	//importanza alla classe minoritaria 
 	//sampleSizePercent: percentuale istanze da mantenere dopo campionamento
 	//options: array di stringhe per info aggiuntive
-	private static Resample getResampleFilter(Instances data, boolean noReplacement, double biasToUniformClass, double sampleSizePercent, String[] options) throws Exception {
-		Resample resample = new Resample();
-	    resample.setNoReplacement(noReplacement);
-	    resample.setBiasToUniformClass(biasToUniformClass);
-	    resample.setSampleSizePercent(sampleSizePercent);
-	    resample.setOptions(options);
+	private static Resample getResampleFilter(Instances data,  String[] options) throws Exception {
+        Resample resample = new Resample();
+	    resample.setNoReplacement(false);
+	    resample.setBiasToUniformClass(1.0);
+        resample.setOptions(options);
 	    resample.setInputFormat(data);
 	    return resample;
 	}
@@ -357,28 +363,6 @@ public class weka{
 	    return ev;
 	}
 
-	//filtraggio bilanciato 
-	private static double foundPerc(Instances train) {
-	    double numOfBuggy = numOfBuggy(train);
-	    double nonnumOfBuggy = 1 - numOfBuggy;
-
-	    // Check which is the minority class
-	    double minorityClass, majorityClass;
-	    if (numOfBuggy < nonnumOfBuggy) {
-	        minorityClass = numOfBuggy;
-	        majorityClass = nonnumOfBuggy;
-	    } else {
-	        minorityClass = nonnumOfBuggy;
-	        majorityClass = numOfBuggy;
-	    }
-
-	    double sampleSizePerc = 100 * (majorityClass - minorityClass) / minorityClass;
-
-	    return sampleSizePerc;
-	}
-
-
-
 
 	//percentuale buggy  = true
 	private static double numOfBuggy(Instances train) {
@@ -450,7 +434,7 @@ public class weka{
 	}
 
 	
-
+	//ordina le istanze in base al numero di versione
 	private static ArrayList<Instances> extractVersions(Instances data) {
 	    return IntStream.rangeClosed(1, (int) data.lastInstance().value(0))
 	            .mapToObj(version -> extractInstancesForVersion(data, version))
