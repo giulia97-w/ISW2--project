@@ -1388,17 +1388,14 @@ public class RetrieveMetrics {
             if(newProportionTicket.size() < movingWindowsCount) {
             	
             	predictedIv = calculatePredictedIv(ticket, medianP(ticketListAvro, ticketListAccumulo, ticketListStorm, ticketListTajo, ticketListSyncope));
-                //System.out.println("Pnew1 "  + ticket.getTicketID() + ":" + Float.toString(medianP(ticketListAvro, ticketListAccumulo, ticketListStorm, ticketListTajo,ticketListSyncope)));
 
             }else if(newProportionTicket.size() == movingWindowsCount) {
                 predictedIv = calculatePredictedIv(ticket, pNew);
-                //System.out.println("Pnew "  + ticket.getTicketID() + ":" + Float.toString(p/movingWindowsCount));
 
 
 
             }
             
-            //System.out.println("Predicted IV "  + ticket.getTicketID() + ":" + Float.toString(predictedIv));
             if(predictedIv <= 1) {
             	ticket.setInjectedVersion(1);
             }else if(predictedIv > 1) {
@@ -1422,7 +1419,6 @@ public class RetrieveMetrics {
             int ov = ticket.getOpenVersion();
             float predictedIV = (fv - (fv - ov) * pNew);
             
-            //System.out.println("Predicted IV "  + ticket.getTicketID() + ":" + Float.toString(pNew));
             
             return  (int) predictedIV;
         }
@@ -1442,7 +1438,6 @@ public class RetrieveMetrics {
             if(fv!=ov ) { 
 	
             p = (fv - iv) / (fv - ov);
-            //System.out.println("P "  + ticket.getTicketID() + ":" + Float.toString(p));
             }
 
             return p;
@@ -1482,7 +1477,6 @@ public class RetrieveMetrics {
             
             if (count > 0) {
                 
-                //System.out.println("P  :"   + sumP/count);
 				return sumP / count;
             } else {
                 return 0;
@@ -1512,7 +1506,6 @@ public class RetrieveMetrics {
                 median = values[middle];
             }
 
-            //System.out.println("Mediana: " + median);
 
             return median;
         }
@@ -1549,7 +1542,6 @@ public class RetrieveMetrics {
                 float medianValue = medianP(tickets, tickets2, tickets3, tickets4, tickets5);
                 writer.write("Median P ," + medianValue + System.lineSeparator());
 
-                //System.out.println("Scrittura completata nel file: " + fileName);
             } catch (IOException e) {
   	  		  	logger.info(ERROR);
             }
