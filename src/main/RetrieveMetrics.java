@@ -458,7 +458,7 @@ public class RetrieveMetrics {
             });
     }
     
-    public static void checkTicketZookkeeper() {
+    public static void checkTicketAccumulo() {
         ticketListAccumulo.stream()
             .filter(ticket -> ticket.getInjectedVersion() != 0)
             .forEach(ticket -> {
@@ -698,9 +698,9 @@ public class RetrieveMetrics {
         //ACCUMULO
         linkFunction();
         removeObsoleteReleasesAndTickets(releasesListAccumulo, ticketListAccumulo);
-        checkTicketZookkeeper(); 
-        FileRepositoryBuilder repositoryBuilderZookkeeper = new FileRepositoryBuilder();
-        repository = repositoryBuilderZookkeeper.setGitDir(new File(percorso + ACCUMULO.toLowerCase() + endPath)).readEnvironment().findGitDir().setMustExist(true).build();
+        checkTicketAccumulo(); 
+        FileRepositoryBuilder repositoryBuilderAccumulo = new FileRepositoryBuilder();
+        repository = repositoryBuilderAccumulo.setGitDir(new File(percorso + ACCUMULO.toLowerCase() + endPath)).readEnvironment().findGitDir().setMustExist(true).build();
         Collections.reverse(ticketListAccumulo); 
         Ticket.ticketDataset(ticketListAccumulo,ACCUMULO);
         logger.log(Level.INFO, "P ACCUMULO: ");
@@ -720,10 +720,10 @@ public class RetrieveMetrics {
         FileRepositoryBuilder repositoryBuilderBookkeeper = new FileRepositoryBuilder();
         repository = repositoryBuilderBookkeeper.setGitDir(new File(percorso + BOOKKEEPER.toLowerCase() + endPath)).readEnvironment().findGitDir().setMustExist(true).build();
         Collections.reverse(ticketListBookkeeper); 
+        Ticket.ticketDataset(ticketListBookkeeper, BOOKKEEPER);
 
         findProportion(ticketListBookkeeper);
         checkTicketBookkeeper(); 
-        Ticket.ticketDataset(ticketListBookkeeper, BOOKKEEPER);
 
         getJavaFiles(Paths.get(percorso + BOOKKEEPER.toLowerCase()), releasesListBookkeeper);
         isBuggy(releasesListBookkeeper, ticketListBookkeeper); 
@@ -1388,14 +1388,17 @@ public class RetrieveMetrics {
             if(newProportionTicket.size() < movingWindowsCount) {
             	
             	predictedIv = calculatePredictedIv(ticket, medianP(ticketListAvro, ticketListAccumulo, ticketListStorm, ticketListTajo, ticketListSyncope));
+                //System.out.println("Pnew1 "  + ticket.getTicketID() + ":" + Float.toString(medianP(ticketListAvro, ticketListAccumulo, ticketListStorm, ticketListTajo,ticketListSyncope)));
 
             }else if(newProportionTicket.size() == movingWindowsCount) {
                 predictedIv = calculatePredictedIv(ticket, pNew);
+                //System.out.println("Pnew "  + ticket.getTicketID() + ":" + Float.toString(p/movingWindowsCount));
 
 
 
             }
             
+            //System.out.println("Predicted IV "  + ticket.getTicketID() + ":" + Float.toString(predictedIv));
             if(predictedIv <= 1) {
             	ticket.setInjectedVersion(1);
             }else if(predictedIv > 1) {
@@ -1419,6 +1422,7 @@ public class RetrieveMetrics {
             int ov = ticket.getOpenVersion();
             float predictedIV = (fv - (fv - ov) * pNew);
             
+            //System.out.println("Predicted IV "  + ticket.getTicketID() + ":" + Float.toString(pNew));
             
             return  (int) predictedIV;
         }
@@ -1438,6 +1442,7 @@ public class RetrieveMetrics {
             if(fv!=ov ) { 
 	
             p = (fv - iv) / (fv - ov);
+            //System.out.println("P "  + ticket.getTicketID() + ":" + Float.toString(p));
             }
 
             return p;
@@ -1459,6 +1464,7 @@ public class RetrieveMetrics {
         
         
         private static float obtainingPOtherProject(List<Ticket> tickets) {
+        	
             float sumP = 0;
             int count = 0;
             
@@ -1476,6 +1482,7 @@ public class RetrieveMetrics {
             
             if (count > 0) {
                 
+                //System.out.println("P  :"   + sumP/count);
 				return sumP / count;
             } else {
                 return 0;
@@ -1505,6 +1512,7 @@ public class RetrieveMetrics {
                 median = values[middle];
             }
 
+            //System.out.println("Mediana: " + median);
 
             return median;
         }
@@ -1541,6 +1549,7 @@ public class RetrieveMetrics {
                 float medianValue = medianP(tickets, tickets2, tickets3, tickets4, tickets5);
                 writer.write("Median P ," + medianValue + System.lineSeparator());
 
+                //System.out.println("Scrittura completata nel file: " + fileName);
             } catch (IOException e) {
   	  		  	logger.info(ERROR);
             }
