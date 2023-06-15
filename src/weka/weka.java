@@ -59,25 +59,7 @@ public class weka{
 		
 
 	}
-	//calcola il rapporto tra la dimensione del training set
-	//e la somma delle dimensioni del training set e del test set. 
-	//Il valore restituito è un numero compreso tra 0 e 1 che rappresenta 
-	//la frazione del totale delle istanze che sono nel training set. 
-	
-	/*private static double calculateTrainingTestingRatio(Instances train, Instances test) {
-	    double trainSize = train.numInstances();
-	    double testSize = test.numInstances();
-	    return trainSize / (trainSize + testSize);
-	}*/
 
-	
-
-	
-
-	/*private static double calculateBuggy(Instances instances) {
-
-	    return numOfBuggy(instances);
-	}*/
 	// metodo per impostare nome del progetto, release, classificatore utilizzato, bilanciamento, featureSelection
 	//sensitivity, defectiveInTraining, defectiveInTesting, trainPercentage, testPercentage
 	public static ClassifierInfo createMeasureObject(Instances train, Instances test, String[] s,  int version) {
@@ -363,14 +345,6 @@ public class weka{
 	    return ev;
 	}
 
-
-	//percentuale buggy  = true
-	/*private static double numOfBuggy(Instances train) {
-		int numBuggy = (int) train.stream()
-	            .filter(instance -> instance.stringValue(instance.classAttribute()).equals("true"))
-	            .count();
-	    return (double) numBuggy / train.size();
-	}*/
 	//peso assegnato alla matrice di costo
 	private static CostMatrix createCostMatrix(double weightFalsePositive, double weightFalseNegative) {
 		CostMatrix costMatrix = new CostMatrix(2); 
