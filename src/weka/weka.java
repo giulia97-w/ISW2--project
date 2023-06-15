@@ -39,7 +39,7 @@ import weka.filters.supervised.instance.SpreadSubsample;
 import weka.filters.supervised.instance.SMOTE;
 
 public class weka{ 
-	static String projectName = "BOOKKEEPER"; //or OPENJPA
+	static String projectName = "OPENJPA"; //or OPENJPA
 	public static final String SENSITIVE_LEARNING = "SENSITIVE LEARNING";
 	public static final String SENSITIVE_THRESHOLD = "SENSITIVE THRESHOLD";
 	public static final String NO = "NO";
@@ -48,7 +48,7 @@ public class weka{
 	private static final Logger logger =  Logger.getLogger(weka.class.getName());
 	public static void main(String[] args) throws Exception
 	{
-		String projectName1 = "BOOKKEEPER"; //or OPENJPA
+		String projectName1 = "OPENJPA"; //or OPENJPA
 		
 		String nomeFile = projectName1.toLowerCase() + "Dataset.arff" ;
 		String path = "/Users/giuliamenichini/eclipse-workspace/ISW2/" + nomeFile ;
@@ -64,20 +64,20 @@ public class weka{
 	//Il valore restituito è un numero compreso tra 0 e 1 che rappresenta 
 	//la frazione del totale delle istanze che sono nel training set. 
 	
-	private static double calculateTrainingTestingRatio(Instances train, Instances test) {
+	/*private static double calculateTrainingTestingRatio(Instances train, Instances test) {
 	    double trainSize = train.numInstances();
 	    double testSize = test.numInstances();
 	    return trainSize / (trainSize + testSize);
-	}
+	}*/
 
 	
 
 	
 
-	private static double calculateBuggy(Instances instances) {
+	/*private static double calculateBuggy(Instances instances) {
 
 	    return numOfBuggy(instances);
-	}
+	}*/
 	// metodo per impostare nome del progetto, release, classificatore utilizzato, bilanciamento, featureSelection
 	//sensitivity, defectiveInTraining, defectiveInTesting, trainPercentage, testPercentage
 	public static ClassifierInfo createMeasureObject(Instances train, Instances test, String[] s,  int version) {
@@ -95,9 +95,9 @@ public class weka{
 	        }
 	    }
 
-	    m.setNumberTrainTest(calculateTrainingTestingRatio(train, test));
-	    m.setBuggyInTrain(calculateBuggy(train));
-	    m.setBuggyInTest(calculateBuggy(test));
+	    //m.setNumberTrainTest(calculateTrainingTestingRatio(train, test));
+	    //m.setBuggyInTrain(calculateBuggy(train));
+	    //m.setBuggyInTest(calculateBuggy(test));
 	    return m;
 	}
 
@@ -365,12 +365,12 @@ public class weka{
 
 
 	//percentuale buggy  = true
-	private static double numOfBuggy(Instances train) {
+	/*private static double numOfBuggy(Instances train) {
 		int numBuggy = (int) train.stream()
 	            .filter(instance -> instance.stringValue(instance.classAttribute()).equals("true"))
 	            .count();
 	    return (double) numBuggy / train.size();
-	}
+	}*/
 	//peso assegnato alla matrice di costo
 	private static CostMatrix createCostMatrix(double weightFalsePositive, double weightFalseNegative) {
 		CostMatrix costMatrix = new CostMatrix(2); 
@@ -458,7 +458,7 @@ public class weka{
 	    String outName = projectName + "Output.csv";
 	    
 	    try (PrintWriter writer = new PrintWriter(new FileWriter(outName))) {
-	        writer.println("Dataset,#TrainingRelease,%Training,%Defective in training,%Defective in testing,Classifier,Balancing,Feature Selection,Sensitivity,TP,FP,TN,FN,Precision,Recall,AUC,Kappa");
+	        writer.println("Dataset,#TrainingRelease,Classifier,Balancing,Feature Selection,Sensitivity,TP,FP,TN,FN,Precision,Recall,AUC,Kappa");
 	        
 	        measures.forEach(measure -> createCSV(writer, measure));
 
@@ -468,8 +468,7 @@ public class weka{
 	}
 
 	private static void createCSV(PrintWriter writer, ClassifierInfo measure)  {
-	    String[] fields = {projectName, measure.getRelease().toString(), measure.getNumberTrain().toString(),
-	        measure.getBuggyInTrain().toString(), measure.getBuggyInTest().toString(),
+	    String[] fields = {projectName, measure.getRelease().toString(), 
 	        measure.getClassifierType(), measure.getBalancing(), measure.getFeatureSelection(), measure.getSensitivity(),
 	        measure.getTp().toString(), measure.getFp().toString(), measure.getTn().toString(), measure.getFn().toString(),
 	        measure.getPrecision().toString(), measure.getRecall().toString(), measure.getAuc().toString(),
